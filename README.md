@@ -29,6 +29,3 @@ The script filters a word list and scores the remaining words by letter frequenc
 2. **Prepare a Word List**
 
    - The script expects a file named `list_wordles.txt` in the same directory, containing one five-letter word per line.
-   - You can get such lists from [The Wordle word list](https://github.com/tabatkins/wordle-list) or similar sources.
-
-   Example:
