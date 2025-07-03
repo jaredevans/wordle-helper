@@ -1,7 +1,9 @@
 # Wordle Helper (Python Edition - Frequency Scoring)
 
 A command-line Python tool to help you solve Wordle puzzles by filtering and ranking five-letter word guesses based on your clues.  
+
 You provide the green (correct spot), yellow (wrong spot), and gray (eliminated) letter clues interactively.  
+
 The script filters a word list and scores the remaining words by letter frequency to suggest the most strategic guesses.
 
 ---
