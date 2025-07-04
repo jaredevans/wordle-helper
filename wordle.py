@@ -2,20 +2,29 @@
 
 from collections import Counter  # For counting frequency of letters in the candidate list
 
+# =======================
 # Load 5-letter words from the provided filename into a list
+# =======================
 def load_word_list(filename):
     with open(filename) as f:
         # Strip whitespace, convert to lowercase, keep only 5-letter words
         words = [line.strip().lower() for line in f if len(line.strip()) == 5]
     return words
 
+# =======================
 # Check if the word matches the known green pattern (correct letters in place)
+# =======================
 def matches_green(word, pattern):
+    ## EXPLANATION:
     # For each letter and its pattern, accept if pattern is '.' (unknown) or if the letters match
     return all(w == p or p == '.' for w, p in zip(word, pattern))
 
+# =======================
 # Check if word satisfies all yellow patterns (correct letter, wrong position)
+# =======================
 def matches_yellow(word, yellow_patterns):
+    ## EXPLANATION:
+    # For each yellow pattern, ensure that the word contains the yellow letter, but NOT in the same position
     for yp in yellow_patterns:
         # Find the position (index) and the yellow letter in this pattern (e.g. '..k..' => idx=2, letter='k')
         idx = yp.find(next(filter(str.isalpha, yp)))
@@ -28,12 +37,16 @@ def matches_yellow(word, yellow_patterns):
             return False
     return True  # All yellow patterns satisfied
 
+# =======================
 # Check if the word excludes all gray (eliminated) letters, except those "protected" (green/yellow in other slots)
+# =======================
 def matches_gray(word, gray_letters, green_pattern, yellow_patterns):
-    # Build set of protected letters: green and yellow letters should not be excluded even if also marked gray
-    protected = set(green_pattern.replace('.', ''))
+    ## EXPLANATION:
+    # Gray letters (not in answer) should not appear in the word, unless they are 'protected'
+    # (i.e., that letter is confirmed elsewhere by green/yellow clue)
+    protected = set(green_pattern.replace('.', ''))  # Green letters
     for yp in yellow_patterns:
-        protected.add(next(filter(str.isalpha, yp)))
+        protected.add(next(filter(str.isalpha, yp)))  # Add yellow letters too
     for letter in gray_letters:
         if letter in protected:
             # If letter is green/yellow somewhere else, skip the gray elimination for this letter
@@ -43,6 +56,9 @@ def matches_gray(word, gray_letters, green_pattern, yellow_patterns):
             return False
     return True
 
+# =======================
+# Main interactive function
+# =======================
 def main():
     # Load possible words (from word list file)
     words = load_word_list('list_wordles.txt')
@@ -61,13 +77,15 @@ def main():
             print("Pattern must be 5 characters (use . for unknowns).")
             continue
 
-        # Get yellow letters (out-of-place) as patterns, allow multiple
-        while True:
-            y = input("Out-of-place letter (format ..k..), Enter to continue: ").strip().lower()
-            if not y:
-                break  # Done entering yellow letters
-            if len(y) == 5 and y not in yellow_patterns:
-                yellow_patterns.append(y)  # Add new yellow pattern
+        # Get yellow (out-of-place) letters as a single pattern, e.g., .a.g.
+        y = input("Out-of-place letters (format .a.g.), Enter to skip: ").strip().lower()
+        yellow_patterns.clear()
+        if y and len(y) == 5:
+            for i, letter in enumerate(y):
+                if letter != '.':
+                    pattern = ['.'] * 5
+                    pattern[i] = letter
+                    yellow_patterns.append(''.join(pattern))
 
         # Get gray (eliminated) letters as a simple string, add each to set
         grays = input("Letters eliminated (gray), as a string: ").strip().lower()
@@ -91,15 +109,17 @@ def main():
         elif len(matches) <= 2:
             print(", ".join(matches))  # Just list the few matches found
         else:
+            # =======================
             # Calculate frequency of each letter among remaining matches
-            letter_counts = Counter("".join(matches))
+            # =======================
+            letter_counts = Counter("".join(matches))  # Count how often each letter appears in all matching words
             word_scores = []
             for w in matches:
                 unique_letters = set(w)  # Only count each letter once per word
+                # Score is the sum of how frequent each unique letter is among all matches
                 score = sum(letter_counts[l] for l in unique_letters)
-                # Higher score = word uses more frequent letters in this pool
                 word_scores.append((score, w))
-            # Sort by highest score, then alphabetically for tie-breaker
+            # Sort by highest score (most frequent letters), then alphabetically for tie-breaker
             word_scores.sort(key=lambda x: (-x[0], x[1]))
             print("Top suggestions (highest-frequency letters):")
             for score, w in word_scores[:10]:  # Show top 10 best guesses
